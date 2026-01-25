@@ -295,7 +295,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			DoConfigLoad();
 
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C486, 0x5B2373); // remove career
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
+			//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C5BE, 0x5B2373); // remove custom match
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C60C, 0x5B2373); // remove quick match
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C65A, 0x5B2373); // remove reward cards
@@ -304,10 +304,10 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 #ifdef TIMETRIALS_CHALLENGESERIES
 			SetChallengeSeriesMode(true);
-			//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C570, 0x5B2373); // remove quick race
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C570, 0x5B2373); // remove quick race
 #else
 			UnlockAllThings = true;
-			//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
 #endif
 
 			WriteLog("Mod initialized");

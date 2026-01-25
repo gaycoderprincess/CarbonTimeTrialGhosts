@@ -10,10 +10,10 @@ SET(CMAKE_RANLIB i686-w64-mingw32-ranlib)
 
 SET(CMAKE_CXX_STANDARD 20)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -masm=intel -s -static")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -masm=intel -static")
 
-#add_compile_definitions(TIMETRIALS_CARBON TIMETRIALS_CHALLENGESERIES IMGUI_USER_CONFIG="../../nya_imconfig.h" NYA_BACKEND_DX9 NYA_COMMON_NO_D3D NYA_FONTNAME="MenuStyles/MenuStyleBubbly/FranxurterTotallyMedium-gxwjp.ttf" NYA_FONTSIZE=32.0)
-add_compile_definitions(TIMETRIALS_CARBON IMGUI_USER_CONFIG="../../nya_imconfig.h" NYA_BACKEND_DX9 NYA_COMMON_NO_D3D NYA_FONTNAME="MenuStyles/MenuStyleBubbly/FranxurterTotallyMedium-gxwjp.ttf" NYA_FONTSIZE=32.0)
+add_compile_definitions(TIMETRIALS_CARBON TIMETRIALS_CHALLENGESERIES IMGUI_USER_CONFIG="../../nya_imconfig.h" NYA_BACKEND_DX9 NYA_COMMON_NO_D3D NYA_FONTNAME="MenuStyles/MenuStyleBubbly/FranxurterTotallyMedium-gxwjp.ttf" NYA_FONTSIZE=32.0)
+#add_compile_definitions(TIMETRIALS_CARBON IMGUI_USER_CONFIG="../../nya_imconfig.h" NYA_BACKEND_DX9 NYA_COMMON_NO_D3D NYA_FONTNAME="MenuStyles/MenuStyleBubbly/FranxurterTotallyMedium-gxwjp.ttf" NYA_FONTSIZE=32.0)
 add_library(NFSCTimeTrialGhosts SHARED
         ../nya-common/3rdparty/imgui/imgui.cpp
         ../nya-common/3rdparty/imgui/backends/imgui_impl_dx9.cpp
@@ -32,7 +32,7 @@ target_include_directories(NFSCTimeTrialGhosts PUBLIC ../nya-common/3rdparty/img
 target_include_directories(NFSCTimeTrialGhosts PUBLIC ../nya-common/3rdparty/imgui/backends)
 target_include_directories(NFSCTimeTrialGhosts PUBLIC ../nya-common-nfsc)
 target_include_directories(NFSCTimeTrialGhosts PUBLIC ../CwoeeMenuLib/include)
-target_link_options(NFSCTimeTrialGhosts PRIVATE "-Wl,--exclude-all-symbols")
+#target_link_options(NFSCTimeTrialGhosts PRIVATE "-Wl,--exclude-all-symbols")
 
 set_target_properties(NFSCTimeTrialGhosts PROPERTIES PREFIX "")
 set_target_properties(NFSCTimeTrialGhosts PROPERTIES SUFFIX "_gcp.asi")

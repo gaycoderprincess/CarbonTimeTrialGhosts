@@ -214,7 +214,7 @@ GRacerInfo* GetRacerInfoFromHandle(HSIMABLE handle) {
 	RideInfo::SetStockParts(&info);
 	FECustomizationRecord::WriteRideIntoRecord(&record, &info);
 	return record;
-}
+}*/
 
 uint32_t GetCarFEKey(uint32_t modelHash) {
 	auto collection = Attrib::FindCollection(Attrib::StringHash32("pvehicle"), modelHash);
@@ -237,7 +237,7 @@ FECarRecord CreateStockCarRecord(const char* carModel) {
 	car.Customization = -1;
 	car.CareerHandle = -1;
 	return car;
-}*/
+}
 
 void SetRacerName(GRacerInfo* racer, const char* name) {
 	strcpy_s(racer->mName, 32, name);
