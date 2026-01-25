@@ -285,8 +285,16 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch(0xA6119C, 1); // lap knockout -> circuit
 			NyaHookLib::Patch(0xA611AC, 0); // speedtrap -> sprint
 			//NyaHookLib::Patch(0xA611EC, 0); // canyon -> sprint
+			NyaHookLib::Patch(0xA611BC, 0); // checkpoint -> sprint
 
 			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
+
+			// increase max racers to 30
+			NyaHookLib::Patch<uint8_t>(0x668EC9, 0xEB);
+			NyaHookLib::Patch<uint8_t>(0x668EEC, 0xEB);
+
+			NyaHookLib::Patch<uint16_t>(0x63F65E, 0x9090); // don't spawn boss characters
+			NyaHookLib::Patch<uint16_t>(0x63F66C, 0x9090); // don't spawn boss characters
 
 			ApplyCarRenderHooks();
 
