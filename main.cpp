@@ -224,9 +224,9 @@ void __thiscall RaceCountdownHooked(void* pThis) {
 	RaceCountdownHooked_orig(pThis);
 }
 
-bool __stdcall FinishTimeHooked(float* out, GRacerInfo* racer) {
+bool __thiscall FinishTimeHooked(DALRacer* pThis, float* out, GRacerInfo* racer) {
 	if (bViewReplayMode) {
-		return DALRacer::GetRaceTime(out, racer);
+		return DALRacer::GetRaceTime(pThis, out, racer);
 	}
 	else {
 		*out = nLastFinishTime * 0.001;
@@ -241,6 +241,51 @@ bool __stdcall RaceTimeHooked(float* out, GRacerInfo* racer) {
 
 bool __thiscall GetIsCrewRaceHooked(GRaceStatus* pThis) {
 	return false;
+}
+
+DriftScoreReport* __thiscall GetDriftScoreHooked(DALRacer* pThis, int racerId) {
+	auto racer = DALRacer::GetRacerInfo(pThis, racerId);
+	if (racer == &GRaceStatus::fObj->mRacerInfo[0]) {
+		return DALRacer::GetDriftScoreReport(pThis, racerId);
+	}
+
+	static DriftScoreReport tmp;
+	tmp.totalPoints = 0;
+
+	int opponentId = racerId-3;
+	if (OpponentGhosts.size() <= opponentId) return &tmp;
+
+	auto& opponent = OpponentGhosts[opponentId];
+	auto tick = opponent.GetCurrentTick();
+	if (tick >= opponent.aTicks.size()) {
+		tmp.totalPoints = opponent.nFinishPoints;
+	}
+	else {
+		tmp.totalPoints = opponent.aTicks[tick].v4.driftPoints;
+	}
+	return &tmp;
+}
+
+bool __thiscall GetRacerNameHooked(DALRacer* pThis, char* out, int outLen, int racerId) {
+	auto raceType = GRaceParameters::GetRaceType(GRaceStatus::fObj->mRaceParms);
+	if (raceType != GRace::kRaceType_DriftRace && raceType != GRace::kRaceType_CanyonDrift) {
+		return DALRacer::GetName(pThis, out, outLen, racerId);
+	}
+
+	auto racer = DALRacer::GetRacerInfo(pThis, racerId);
+	if (!racer) {
+		int opponentId = racerId-3;
+		if (opponentId < 0) {
+			strcpy_s(out, outLen, GetUserProfile()->mName);
+			return true;
+		}
+
+		if (OpponentGhosts.size() <= opponentId) return false;
+		strcpy_s(out, outLen, OpponentGhosts[opponentId].sPlayerName.c_str());
+		return true;
+	}
+	strcpy_s(out, outLen, racer->mName);
+	return true;
 }
 
 BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
@@ -274,8 +319,18 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x445087, &TrafficDensityHooked);
 
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4A6F25, &GetDriftScoreHooked);
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4CEAD6, &GetRacerNameHooked);
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4CF258, &FinishTimeHooked);
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4D2CD2, &RaceTimeHooked);
+
+			NyaHookLib::Patch<uint8_t>(0x492F51, 0xEB); // disable CameraMover::MinGapCars
+
+			// remove career mode and multiplayer
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C486, 0x5B2373); // career
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C5BE, 0x5B2373); // custom match
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C60C, 0x5B2373); // quick match
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C65A, 0x5B2373); // reward cards
 
 			RaceCountdownHooked_orig = (void(__thiscall*)(void*))NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x6863E3, &RaceCountdownHooked);
 
@@ -301,12 +356,6 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			ChloeMenuLib::RegisterMenu("Time Trial Ghosts", &DebugMenu);
 
 			DoConfigLoad();
-
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C486, 0x5B2373); // remove career
-			//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C5BE, 0x5B2373); // remove custom match
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C60C, 0x5B2373); // remove quick match
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C65A, 0x5B2373); // remove reward cards
 
 			NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x61BA70, &GetIsCrewRaceHooked); // remove wingmen
 

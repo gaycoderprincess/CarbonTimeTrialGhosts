@@ -1,21 +1,3 @@
-std::string GetCarName(const std::string& carModel) {
-	auto tmp = CreateStockCarRecord(carModel.c_str());
-	std::string carName = GetLocalizedString(FECarRecord::GetNameHash(&tmp));
-	if (carName == GetLocalizedString(0x881F8EFA)) { // unlocalized string
-		carName = carModel;
-		std::transform(carName.begin(), carName.end(), carName.begin(), [](char c){ return std::toupper(c); });
-	}
-	return carName;
-}
-
-std::string GetTrackName(const std::string& eventId, uint32_t nameHash) {
-	auto trackName = GetLocalizedString(nameHash);
-	if (trackName == GetLocalizedString(0x881F8EFA)) { // unlocalized string
-		return eventId;
-	}
-	return trackName;
-}
-
 std::string GetCarNameForGhost(const std::string& carPreset) {
 	auto carName = carPreset;
 	if (auto preset = FindFEPresetCar(FEHashUpper(carName.c_str()))) {
@@ -42,30 +24,26 @@ struct tChallengeSeriesEvent {
 		return GRaceParameters::GetNumLaps(GetRace());
 	}
 
-	uint32_t GetPBTime() {
+	tReplayGhost GetPBGhost() {
 		tReplayGhost temp;
 		LoadPB(&temp, GetCarNameForGhost(sCarPreset), sEventName, GetLapCount(), 0, nullptr);
-		return temp.nFinishTime;
+		return temp;
 	}
 
-	uint32_t GetTargetTime() {
+	tReplayGhost GetTargetGhost() {
 		tReplayGhost targetTime;
 		auto times = CollectReplayGhosts(GetCarNameForGhost(sCarPreset), sEventName, GetLapCount(), nullptr);
 		if (!times.empty()) targetTime = times[0];
 		nNumGhosts = times.size();
-		return targetTime.nFinishTime;
-	}
-
-	std::string GetTargetName() {
-		tReplayGhost targetTime;
-		auto times = CollectReplayGhosts(GetCarNameForGhost(sCarPreset), sEventName, GetLapCount(), nullptr);
-		if (!times.empty()) targetTime = times[0];
-		return targetTime.sPlayerName;
+		return targetTime;
 	}
 };
 
 std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 	{"mu.1.3", "CE_240SX"},
+	{"cs.10.1", "CROSS"},
+	{"sf.2.1", "NIKKI"},
+	{"tn.99.99", "CS_RX8"},
 };
 
 tChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {
@@ -85,7 +63,7 @@ tChallengeSeriesEvent* GetChallengeEvent(const std::string& str) {
 int CalculateTotalTimes() {
 	uint32_t totalTime = 0;
 	for (auto& event : aNewChallengeSeries) {
-		auto time = event.GetPBTime();
+		auto time = event.GetPBGhost().nFinishTime;
 		if (!time) return 0;
 		totalTime += time;
 	}
@@ -121,13 +99,14 @@ bool __stdcall GetChallengeSeriesEventCompleted(int* out, uint32_t hash) {
 	DLLDirSetter _setdir;
 
 	auto event = GetChallengeEvent(hash);
-	auto pb = event->GetPBTime();
-	if (pb && pb <= event->GetTargetTime()) {
-		*out = 1;
-	}
-	else {
-		*out = 0;
-	}
+	auto pb = event->GetPBGhost().nFinishTime;
+	*out = pb != 0;
+	//if (pb && pb <= event->GetTargetTime()) {
+	//	*out = 1;
+	//}
+	//else {
+	//	*out = 0;
+	//}
 	return true;
 }
 
@@ -170,9 +149,20 @@ bool __stdcall GetChallengeSeriesEventTime(float* out, uint32_t hash) {
 
 	auto event = GetChallengeEvent(hash);
 	if (!event) return false;
-	auto time = event->GetPBTime();
+	auto time = event->GetPBGhost().nFinishTime;
 	if (!time) return false;
 	*out = time * 0.001;
+	return true;
+}
+
+bool __stdcall GetChallengeSeriesEventPoints(int* out, uint32_t hash) {
+	DLLDirSetter _setdir;
+
+	auto event = GetChallengeEvent(hash);
+	if (!event) return false;
+	auto pts = event->GetPBGhost().nFinishPoints;
+	if (!pts) return false;
+	*out = pts;
 	return true;
 }
 
@@ -182,7 +172,11 @@ int __thiscall GetNumOpponentsHooked(GRaceParameters* pThis) {
 
 	if (bViewReplayMode) return 0;
 	if (bChallengesOneGhostOnly) return 1;
-	return nDifficulty != DIFFICULTY_EASY ? std::min(event->nNumGhosts, 3) : 1; // only spawn one ghost for easy difficulty
+
+	// only spawn one ghost for easy difficulty
+	auto count = nDifficulty != DIFFICULTY_EASY ? std::min(event->nNumGhosts, 29) : 1;
+	if (count < 1) return 1;
+	return count;
 }
 
 const char* GetLocalizedStringHooked(uint32_t key) {
@@ -190,12 +184,20 @@ const char* GetLocalizedStringHooked(uint32_t key) {
 	if (id < aNewChallengeSeries.size()) {
 		DLLDirSetter _setdir;
 
-		auto targetTime = aNewChallengeSeries[id].GetTargetTime();
-		auto targetName = aNewChallengeSeries[id].GetTargetName();
+		auto target = aNewChallengeSeries[id].GetTargetGhost();
+		auto targetTime = target.nFinishTime;
+		auto targetPoints = target.nFinishPoints;
+		auto targetName = target.sPlayerName;
 
 		static std::string str;
 		str = "";
-		if (targetTime > 0) {
+		if (targetPoints > 0) {
+			str += std::format("Target: {}pts", targetPoints);
+			if (!targetName.empty()) {
+				str += std::format(" ({})", targetName);
+			}
+		}
+		else if (targetTime > 0) {
 			str += std::format("Target Time: {}", GetTimeFromMilliseconds(targetTime));
 			str.pop_back();
 			if (!targetName.empty()) {
@@ -212,7 +214,30 @@ const char* GetLocalizedStringHooked(uint32_t key) {
 	return GetLocalizedString(key);
 }
 
+bool __thiscall GetIsDDayRaceHooked(GRaceParameters* pThis) {
+	return false;
+}
+
+bool __thiscall GetIsTutorialRaceHooked(GRaceParameters* pThis) {
+	return false;
+}
+
+bool __thiscall GetIsRollingStartHooked(GRaceParameters* pThis) {
+	return false;
+}
+
+int __thiscall GetNumLapsHooked(GRaceParameters* pThis) {
+	if (!GRaceParameters::GetIsLoopingRace(pThis)) return 1;
+	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
+	if (!event || !event->nLapCountOverride) return 2;
+	return event->nLapCountOverride;
+}
+
 void ApplyCustomEventsHooks() {
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E0C0, &GetIsDDayRaceHooked);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E180, &GetIsTutorialRaceHooked);
+	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E8F0, &GetIsRollingStartHooked);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F450, &GetNumLapsHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63C660, &GetNumOpponentsHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E540, &GetIsChallengeSeriesEvent);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3739, &GetChallengeSeriesEventCount);
@@ -224,6 +249,7 @@ void ApplyCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3899, &GetChallengeSeriesEventDescription);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C37FF, &GetChallengeSeriesEventSolo);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4B71F7, &GetChallengeSeriesEventTime);
+	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3841, &GetChallengeSeriesEventPoints);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E990, &GetChallengeSeriesEventPlayerCar);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCarHash);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E660, &GetChallengeSeriesEventUsePresetRide);
