@@ -61,6 +61,10 @@ std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 	{"tn.1.1", "KENJI"},
 	{"ct.2.2", "CE_IMPREZA"},
 
+	{"ce.1.1", "ANGIE_CASINO"},
+	{"mu.3.3", "CS_SKYLINE"},
+	{"4.war", "CS_350Z"},
+
 	{"ex.2.1", "WOLF"},
 	{"mu.5.3", "CS_SUPRA"},
 	{"mu.3.1", "ANGIE"},
@@ -71,7 +75,7 @@ std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 
 	{"ct.3.1", "DARIUS"},
 	{"cs.10.1", "CS_CORVETTEZ06"},
-	{"5.duel", "DARIUS"},
+	{"5.duel", "M3GTRCAREERSTART"},
 
 	// challenge series
 	// canyon
