@@ -44,6 +44,7 @@ std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 	{"cs.10.1", "CROSS"},
 	{"sf.2.1", "NIKKI"},
 	{"tn.99.99", "CS_RX8"},
+	{"online", "CE_IMPREZA"},
 };
 
 tChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {

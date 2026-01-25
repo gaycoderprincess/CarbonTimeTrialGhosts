@@ -288,6 +288,10 @@ bool __thiscall GetRacerNameHooked(DALRacer* pThis, char* out, int outLen, int r
 	return true;
 }
 
+int __thiscall GetRaceTypeForMusicHooked(GRaceParameters* pThis) {
+	return GRace::kRaceType_Tollbooth;
+}
+
 BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 	switch( fdwReason ) {
 		case DLL_PROCESS_ATTACH: {
@@ -323,6 +327,10 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4CEAD6, &GetRacerNameHooked);
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4CF258, &FinishTimeHooked);
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4D2CD2, &RaceTimeHooked);
+
+			//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x66987D, &StartGridHooked);
+
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x53E246, &GetRaceTypeForMusicHooked);
 
 			NyaHookLib::Patch<uint8_t>(0x492F51, 0xEB); // disable CameraMover::MinGapCars
 
