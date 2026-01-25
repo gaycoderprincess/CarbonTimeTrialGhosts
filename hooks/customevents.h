@@ -40,14 +40,63 @@ struct tChallengeSeriesEvent {
 };
 
 std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
+	// custom events
 	{"mu.1.3", "CE_240SX"},
-	{"cs.10.1", "CROSS"},
 	{"sf.2.1", "NIKKI"},
 	{"tn.99.99", "CS_RX8"},
-	{"online", "CE_IMPREZA"},
+	{"ct.2.2", "CE_IMPREZA"},
+	{"mu.5.3", "CS_SUPRA"},
+	{"ex.3.1", "CE_MURCIELAGO"},
+	{"ps2.rx7", "CS_RX7"},
+	{"cs.10.1", "CROSS"},
+
+	// challenge series
+	{"cs.3.1", "CS_CLIO"},
+	{"cs.3.2", "CS_CUDA"},
+	//{"cs.3.3", "997gt3rs"},
+	{"ce.4.1", "ANGIE_CASINO"},
+	{"ce.4.2", "KENJI_CASINO"},
+	{"ce.4.3", "WOLF_CASINO"},
+	{"cs.8.1", "CS_BRERA"},
+	{"cs.8.2", "CS_GALLARDO"},
+	{"cs.8.3", "CS_MUSTANGSHLBYO"},
+	{"cs.9.1", "CS_CHARGER69"},
+	{"cs.9.2", "CS_CAYMANS"},
+	{"cs.9.3", "CS_LANCEREVO9"},
+	{"cs.10.1", "EUROPA_2"},
+	{"cs.10.2", "CS_SUPRA"},
+	{"cs.10.3", "CS_CORVETTEZ06"},
+	{"cs.11.1", "CS_300C"},
+	{"cs.11.2", "CS_MUSTANGGT"},
+	{"cs.11.3", "CS_MUSTANGSHLBYO"},
+	{"cs.12.1", "ECLIPSE_2"},
+	{"cs.12.2", "CS_SL65"},
+	{"cs.12.3", "CS_CHALLENGERN"},
+	{"cs.13.1", "CS_CAMARO"},
+	{"cs.13.2", "CS_RX7"},
+	{"cs.13.3", "M3GTRCAREERSTART"},
+	{"cs.14.2", "MR2_2"},
+	//{"cs.14.3", "murcielago640"},
+	{"cs.14.4", "CS_DB9"},
+	{"ce.15.1", "CE_240SX"},
+	//{"ce.15.2", "camaron"},
+	//{"ce.15.3", "ccx"},
+
+	// bosses
+	{"tn.1.1", "KENJI"},
+	{"ex.2.1", "WOLF"},
+	{"mu.3.1", "ANGIE"},
+	{"5.boss", "KENJI_CASINO"},
+	{"ct.3.1", "DARIUS"},
 };
 
 tChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {
+	for (auto& event : aNewChallengeSeries) {
+		if (!GRaceDatabase::GetRaceFromHash(GRaceDatabase::mObj, Attrib::StringHash32(event.sEventName.c_str()))) {
+			MessageBoxA(0, std::format("Failed to find event {}", event.sEventName).c_str(), "nya?!~", MB_ICONERROR);
+			exit(0);
+		}
+	}
 	for (auto& event : aNewChallengeSeries) {
 		if (Attrib::StringHash32(event.sEventName.c_str()) == hash) return &event;
 	}
@@ -173,11 +222,7 @@ int __thiscall GetNumOpponentsHooked(GRaceParameters* pThis) {
 
 	if (bViewReplayMode) return 0;
 	if (bChallengesOneGhostOnly) return 1;
-
-	// only spawn one ghost for easy difficulty
-	auto count = nDifficulty != DIFFICULTY_EASY ? std::min(event->nNumGhosts, 29) : 1;
-	if (count < 1) return 1;
-	return count;
+	return nDifficulty != DIFFICULTY_EASY ? std::min(event->nNumGhosts, 29) : 1; // only spawn one ghost for easy difficulty
 }
 
 const char* GetLocalizedStringHooked(uint32_t key) {
@@ -223,6 +268,10 @@ bool __thiscall GetIsTutorialRaceHooked(GRaceParameters* pThis) {
 	return false;
 }
 
+bool __thiscall GetIsBossRaceHooked(GRaceParameters* pThis) {
+	return false;
+}
+
 bool __thiscall GetIsRollingStartHooked(GRaceParameters* pThis) {
 	return false;
 }
@@ -237,6 +286,7 @@ int __thiscall GetNumLapsHooked(GRaceParameters* pThis) {
 void ApplyCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E0C0, &GetIsDDayRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E180, &GetIsTutorialRaceHooked);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E120, &GetIsBossRaceHooked);
 	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E8F0, &GetIsRollingStartHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F450, &GetNumLapsHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63C660, &GetNumOpponentsHooked);
