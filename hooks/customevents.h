@@ -142,10 +142,16 @@ bool __stdcall GetChallengeSeriesEventSolo(int* out, uint32_t hash) {
 	return true;
 }
 
-bool __thiscall GetChallengeSeriesEventPlayerCar(GRaceParameters* pThis) {
+const char* __thiscall GetChallengeSeriesEventPlayerCar(GRaceParameters* pThis) {
+	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
+	if (!event) return "911turbo";
+	return event->sCarPreset.c_str();
+}
+
+uint32_t __thiscall GetChallengeSeriesEventPlayerCarHash(GRaceParameters* pThis) {
 	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
 	if (!event) return Attrib::StringHash32("911turbo");
-	return Attrib::StringHash32(event->sCarPreset.c_str());
+	return FEHashUpper(event->sCarPreset.c_str());
 }
 
 bool __thiscall GetChallengeSeriesEventUsePresetRide(GRaceParameters* pThis) {
@@ -172,7 +178,8 @@ void ApplyCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C37A7, &GetChallengeSeriesEventCompleted);
 	//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3899, &GetChallengeSeriesEventDescription);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C37FF, &GetChallengeSeriesEventSolo);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCar);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E990, &GetChallengeSeriesEventPlayerCar);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCarHash);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E660, &GetChallengeSeriesEventUsePresetRide);
 
 	// use default fallback icons
