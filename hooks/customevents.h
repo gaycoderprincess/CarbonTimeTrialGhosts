@@ -63,7 +63,7 @@ std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 	{"cs.9.1", "CS_CHARGER69"},
 	{"cs.9.2", "CS_CAYMANS"},
 	{"cs.9.3", "CS_LANCEREVO9"},
-	{"cs.10.1", "EUROPA_2"},
+	//{"cs.10.1", "EUROPA_2"},
 	{"cs.10.2", "CS_SUPRA"},
 	{"cs.10.3", "CS_CORVETTEZ06"},
 	{"cs.11.1", "CS_300C"},
@@ -76,10 +76,10 @@ std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 	{"cs.13.2", "CS_RX7"},
 	{"cs.13.3", "M3GTRCAREERSTART"},
 	{"cs.14.2", "MR2_2"},
-	//{"cs.14.3", "murcielago640"},
+	{"cs.14.3", "CE_MURCIELAGO"},
 	{"cs.14.4", "CS_DB9"},
 	{"ce.15.1", "CE_240SX"},
-	//{"ce.15.2", "camaron"},
+	{"ce.15.2", "MUSCLE_2"},
 	//{"ce.15.3", "ccx"},
 
 	// bosses
