@@ -2,7 +2,10 @@ std::string GetCarNameForGhost(const std::string& carPreset) {
 	auto carName = carPreset;
 	if (auto preset = FindFEPresetCar(FEHashUpper(carName.c_str()))) {
 		auto car = Attrib::FindCollection(Attrib::StringHash32("pvehicle"), preset->VehicleKey);
-		if (!car) __debugbreak();
+		if (!car) {
+			MessageBoxA(0, std::format("Failed to find pvehicle for {} ({} {:X})", carPreset, preset->CarTypeName, preset->VehicleKey).c_str(), "nya?!~", MB_ICONERROR);
+			exit(0);
+		}
 		return *(const char**)Attrib::Collection::GetData(car, Attrib::StringHash32("CollectionName"), 0);
 	}
 	return carName;
@@ -13,6 +16,7 @@ struct tChallengeSeriesEvent {
 	std::string sCarPreset;
 	int nLapCountOverride = 0;
 
+	std::string sGhostCarName;
 	int nNumGhosts = 0;
 
 	GRaceParameters* GetRace() const {
@@ -25,14 +29,18 @@ struct tChallengeSeriesEvent {
 	}
 
 	tReplayGhost GetPBGhost() {
+		if (sGhostCarName.empty()) sGhostCarName = GetCarNameForGhost(sCarPreset);
+
 		tReplayGhost temp;
-		LoadPB(&temp, GetCarNameForGhost(sCarPreset), sEventName, GetLapCount(), 0, nullptr);
+		LoadPB(&temp, sGhostCarName, sEventName, GetLapCount(), 0, nullptr);
 		return temp;
 	}
 
 	tReplayGhost GetTargetGhost() {
+		if (sGhostCarName.empty()) sGhostCarName = GetCarNameForGhost(sCarPreset);
+
 		tReplayGhost targetTime;
-		auto times = CollectReplayGhosts(GetCarNameForGhost(sCarPreset), sEventName, GetLapCount(), nullptr);
+		auto times = CollectReplayGhosts(sGhostCarName, sEventName, GetLapCount(), nullptr);
 		if (!times.empty()) targetTime = times[0];
 		nNumGhosts = times.size();
 		return targetTime;
@@ -41,53 +49,79 @@ struct tChallengeSeriesEvent {
 
 std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
 	// custom events
+	{"tn.1.2", "IS300_2"},
+	{"ex.1.3", "EUROPA_2"},
+	{"sf.3.1", "MR2_2"},
+
+	{"qr.4.2", "CROSS"},
 	{"mu.1.3", "CE_240SX"},
 	{"sf.2.1", "NIKKI"},
+
 	{"tn.99.99", "CS_RX8"},
+	{"tn.1.1", "KENJI"},
 	{"ct.2.2", "CE_IMPREZA"},
+
+	{"ex.2.1", "WOLF"},
 	{"mu.5.3", "CS_SUPRA"},
+	{"mu.3.1", "ANGIE"},
+
 	{"ex.3.1", "CE_MURCIELAGO"},
+	{"5.boss", "KENJI_CASINO"},
 	{"ps2.rx7", "CS_RX7"},
-	{"cs.10.1", "CROSS"},
+
+	{"ct.3.1", "DARIUS"},
+	{"cs.10.1", "CS_CORVETTEZ06"},
+	{"5.duel", "DARIUS"},
 
 	// challenge series
-	{"cs.3.1", "CS_CLIO"},
-	{"cs.3.2", "CS_CUDA"},
-	//{"cs.3.3", "997gt3rs"},
-	{"ce.4.1", "ANGIE_CASINO"},
-	{"ce.4.2", "KENJI_CASINO"},
-	{"ce.4.3", "WOLF_CASINO"},
-	{"cs.8.1", "CS_BRERA"},
-	{"cs.8.2", "CS_GALLARDO"},
-	{"cs.8.3", "CS_MUSTANGSHLBYO"},
-	{"cs.9.1", "CS_CHARGER69"},
-	{"cs.9.2", "CS_CAYMANS"},
-	{"cs.9.3", "CS_LANCEREVO9"},
-	//{"cs.10.1", "EUROPA_2"},
-	{"cs.10.2", "CS_SUPRA"},
-	{"cs.10.3", "CS_CORVETTEZ06"},
-	{"cs.11.1", "CS_300C"},
-	{"cs.11.2", "CS_MUSTANGGT"},
-	{"cs.11.3", "CS_MUSTANGSHLBYO"},
-	{"cs.12.1", "ECLIPSE_2"},
-	{"cs.12.2", "CS_SL65"},
-	{"cs.12.3", "CS_CHALLENGERN"},
-	{"cs.13.1", "CS_CAMARO"},
-	{"cs.13.2", "CS_RX7"},
-	{"cs.13.3", "M3GTRCAREERSTART"},
-	{"cs.14.2", "MR2_2"},
-	{"cs.14.3", "CE_MURCIELAGO"},
-	{"cs.14.4", "CS_DB9"},
-	{"ce.15.1", "CE_240SX"},
-	{"ce.15.2", "MUSCLE_2"},
-	//{"ce.15.3", "ccx"},
-
-	// bosses
-	{"tn.1.1", "KENJI"},
-	{"ex.2.1", "WOLF"},
-	{"mu.3.1", "ANGIE"},
-	{"5.boss", "KENJI_CASINO"},
-	{"ct.3.1", "DARIUS"},
+	// canyon
+	//{"cs.1.1", "IS300_2"},
+	//{"cs.1.2", "roadrunner"},
+	//{"cs.1.3", "CROSS"},
+	// canyon sprint
+	//{"cs.2.1", "CS_RX8"},
+	//{"cs.2.2", "CS_ECLIPSEGT"},
+	//{"cs.2.3", "CS_350Z"},
+	// checkpoint
+	//{"cs.3.1", "CS_CLIO"},
+	//{"cs.3.2", "CS_CUDA"},
+	////{"cs.3.3", "997gt3rs"},
+	// checkpoint
+	//{"ce.4.1", "ANGIE_CASINO"},
+	//{"ce.4.2", "KENJI_CASINO"},
+	//{"ce.4.3", "WOLF_CASINO"},
+	// circuit
+	//{"cs.8.1", "CS_BRERA"},
+	//{"cs.8.2", "CS_GALLARDO"},
+	//{"cs.8.3", "CS_MUSTANGSHLBYO"},
+	// sprint
+	//{"cs.9.1", "CS_CHARGER69"},
+	//{"cs.9.2", "CS_CAYMANS"},
+	//{"cs.9.3", "CS_LANCEREVO9"},
+	// drift
+	////{"cs.10.1", "EUROPA_2"},
+	//{"cs.10.2", "CS_SUPRA"},
+	//{"cs.10.3", "CS_CORVETTEZ06"},
+	// speedtrap
+	//{"cs.11.1", "CS_300C"},
+	//{"cs.11.2", "CS_MUSTANGGT"},
+	//{"cs.11.3", "CS_MUSTANGSHLBYO"},
+	// circuit
+	//{"cs.12.1", "ECLIPSE_2"},
+	//{"cs.12.2", "CS_SL65"},
+	//{"cs.12.3", "CS_CHALLENGERN"},
+	// checkpoint
+	//{"cs.13.1", "CS_CAMARO"},
+	//{"cs.13.2", "CS_RX7"},
+	//{"cs.13.3", "M3GTRCAREERSTART"},
+	// canyon drift
+	//{"cs.14.2", "MR2_2"},
+	//{"cs.14.3", "CE_MURCIELAGO"},
+	//{"cs.14.4", "CS_DB9"},
+	// circuit
+	//{"ce.15.1", "CE_240SX"},
+	//{"ce.15.2", "MUSCLE_2"},
+	////{"ce.15.3", "ccx"},
 };
 
 tChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {

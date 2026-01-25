@@ -347,7 +347,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch(0xA611A4, 0); // tollbooth -> sprint
 			NyaHookLib::Patch(0xA6119C, 1); // lap knockout -> circuit
 			NyaHookLib::Patch(0xA611AC, 0); // speedtrap -> sprint
-			//NyaHookLib::Patch(0xA611EC, 0); // canyon -> sprint
+			NyaHookLib::Patch(0xA611EC, 0); // canyon -> sprint
 			NyaHookLib::Patch(0xA611BC, 0); // checkpoint -> sprint
 
 			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
