@@ -41,20 +41,8 @@ ISimable* VehicleConstructHooked(Sim::Param params) {
 		// copy player car for all opponents
 		auto player = GetLocalPlayerVehicle();
 		vehicle->matched = nullptr;
-		vehicle->pvehicle = *player->GetVehicleAttributes();
+		vehicle->pvehicle = Attrib::Instance(Attrib::FindCollection(Attrib::StringHash32("pvehicle"), player->GetVehicleKey()), 0, nullptr);
 		vehicle->customization = (VehicleCustomizations*)player->GetCustomizations();
-		//if (auto customization = player->GetCustomizations()) {
-		//	static FECustomizationRecord record;
-		//	record = *customization;
-		//	// force nos to be enabled for proper playback
-		//	if (vehicle->carType != Attrib::StringHash32("copcross") && vehicle->carType != Attrib::StringHash32("cs_clio_trafpizza") && record.InstalledPhysics.Part[Physics::Upgrades::PUT_NOS] <= 0) {
-		//		record.InstalledPhysics.Part[Physics::Upgrades::PUT_NOS] = 1;
-		//	}
-		//	vehicle->customization = &record;
-		//}
-		//else {
-		//	vehicle->customization = nullptr;
-		//}
 
 		// do a config save in every loading screen
 		DoConfigSave();
@@ -292,6 +280,10 @@ int __thiscall GetRaceTypeForMusicHooked(GRaceParameters* pThis) {
 	return GRace::kRaceType_Tollbooth;
 }
 
+bool StartGridHooked(int index, UMath::Vector3* pos, UMath::Vector3* dir, void* startMarker) {
+	return GStartGrid::GetGrid(0, pos, dir, startMarker);
+}
+
 BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 	switch( fdwReason ) {
 		case DLL_PROCESS_ATTACH: {
@@ -328,7 +320,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4CF258, &FinishTimeHooked);
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4D2CD2, &RaceTimeHooked);
 
-			//NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x66987D, &StartGridHooked);
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x66987D, &StartGridHooked);
 
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x53E246, &GetRaceTypeForMusicHooked);
 

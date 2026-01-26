@@ -321,7 +321,18 @@ int __thiscall GetNumLapsHooked(GRaceParameters* pThis) {
 	return event->nLapCountOverride;
 }
 
+bool IntroNISHooked(GRaceParameters* a1) {
+	return false;
+}
+
+const char* GetNISHooked(GRaceParameters* a1) {
+	return nullptr;
+}
+
 void ApplyCustomEventsHooks() {
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651A80, &IntroNISHooked);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651860, &GetNISHooked);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x650E3D, 0x650FDC); // disable NIS_Play
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E0C0, &GetIsDDayRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E180, &GetIsTutorialRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E120, &GetIsBossRaceHooked);
