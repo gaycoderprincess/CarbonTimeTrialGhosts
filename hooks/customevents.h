@@ -276,7 +276,7 @@ const char* GetLocalizedStringHooked(uint32_t key) {
 		static std::string str;
 		str = "";
 		if (targetPoints > 0) {
-			str += std::format("Target: {}pts", targetPoints);
+			str += std::format("Target: {} PTS", FormatScore(targetPoints));
 			if (!targetName.empty()) {
 				str += std::format(" ({})", targetName);
 			}

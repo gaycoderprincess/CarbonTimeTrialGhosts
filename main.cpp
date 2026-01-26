@@ -334,7 +334,8 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 			RaceCountdownHooked_orig = (void(__thiscall*)(void*))NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x6863E3, &RaceCountdownHooked);
 
-			NyaHookLib::Fill(0x6DA51B, 0x90, 5); // don't run PVehicle::UpdateListing when changing driver class
+			NyaHookLib::Patch(0x9C4F80, 0x43EE30); // replace AIVehicleRacecar update with AIVehicleEmpty update
+			//NyaHookLib::Fill(0x6DA51B, 0x90, 5); // don't run PVehicle::UpdateListing when changing driver class
 
 			NyaHookLib::Patch(0xA611A4, 0); // tollbooth -> sprint
 			NyaHookLib::Patch(0xA6119C, 1); // lap knockout -> circuit
