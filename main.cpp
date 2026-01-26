@@ -162,9 +162,23 @@ void MainLoop() {
 	TimeTrialLoop();
 }
 
+template<uintptr_t addr>
+void ImportIntegrityCheck() {
+	static auto tmp1 = *(uint32_t*)addr;
+	static auto tmp2 = **(uint32_t**)addr;
+	if (tmp1 != *(uint32_t*)addr || tmp2 != **(uint32_t**)addr) {
+		exit(0);
+	}
+}
+
 void RenderLoop() {
-	// todo is this needed in carbon?
-	//g_WorldLodLevel = std::min(g_WorldLodLevel, 2); // force world detail to one lower than max for props
+	bInitTicker(60000.0);
+	ImportIntegrityCheck<0x86B1EE + 2>(); // QueryPerformanceCounter
+	ImportIntegrityCheck<0x9C1170>(); // QueryPerformanceCounter
+	ImportIntegrityCheck<0x86B1E8 + 2>(); // QueryPerformanceFrequency
+	ImportIntegrityCheck<0x9C1170>(); // QueryPerformanceFrequency
+	ImportIntegrityCheck<0x81C740 + 2>(); // GetTickCount
+	ImportIntegrityCheck<0x9C107C>(); // GetTickCount
 
 	if (TheGameFlowManager.CurrentGameFlowState != GAMEFLOW_STATE_RACING) return;
 	if (IsInLoadingScreen() || IsInNIS()) return;
@@ -439,6 +453,12 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch<uint8_t>(0x655960, 0xC3); // remove speedtraps
 
 			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
+
+			// undo exopts gamespeed
+			static float f = 1.0;
+			NyaHookLib::Patch(0x7683BA, &f);
+			NyaHookLib::Patch(0x7683CB, &f);
+			NyaHookLib::Patch<uint16_t>(0x46CE42, 0x9090);
 
 			// increase max racers to 30
 			NyaHookLib::Patch<uint8_t>(0x668EC9, 0xEB);
