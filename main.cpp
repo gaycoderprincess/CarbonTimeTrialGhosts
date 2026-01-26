@@ -13,6 +13,7 @@ bool bChallengeSeriesMode = false;
 #include "util.h"
 #include "d3dhook.h"
 #include "../MostWantedTimeTrialGhosts/timetrials.h"
+#include "../MostWantedTimeTrialGhosts/verification.h"
 #include "hooks/carrender.h"
 
 #ifdef TIMETRIALS_CHALLENGESERIES
@@ -162,33 +163,18 @@ void MainLoop() {
 	TimeTrialLoop();
 }
 
-template<uintptr_t addr>
-void ImportIntegrityCheck() {
-	static auto tmp1 = *(uint32_t*)addr;
-	static auto tmp2 = **(uint32_t**)addr;
-	if (tmp1 != *(uint32_t*)addr || tmp2 != **(uint32_t**)addr) {
-		exit(0);
-	}
-}
-
 void RenderLoop() {
-	bInitTicker(60000.0);
-	ImportIntegrityCheck<0x86B1EE + 2>(); // QueryPerformanceCounter
-	ImportIntegrityCheck<0x9C1170>(); // QueryPerformanceCounter
-	ImportIntegrityCheck<0x86B1E8 + 2>(); // QueryPerformanceFrequency
-	ImportIntegrityCheck<0x9C1170>(); // QueryPerformanceFrequency
-	ImportIntegrityCheck<0x81C740 + 2>(); // GetTickCount
-	ImportIntegrityCheck<0x9C107C>(); // GetTickCount
+	VerifyTimers();
 
 	if (TheGameFlowManager.CurrentGameFlowState != GAMEFLOW_STATE_RACING) return;
-	if (IsInLoadingScreen() || IsInNIS()) return;
+	if (IsInLoadingScreen()) return;
 
 	DisplayLeaderboard();
 
 	if (!ShouldGhostRun()) return;
 
 	if (bViewReplayMode) {
-		auto ghost = bChallengeSeriesMode && bViewReplayTargetTime && !OpponentGhosts.empty() ? &OpponentGhosts[0] : &PlayerPBGhost;
+		auto ghost = GetViewReplayGhost();
 
 		auto tick = ghost->GetCurrentTick();
 		if (ghost->aTicks.size() > tick) {
@@ -401,17 +387,20 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 			GetCurrentDirectoryW(MAX_PATH, gDLLDir);
 
-			NyaHooks::PlaceD3DHooks();
-			NyaHooks::D3DEndSceneHook::aFunctions.push_back(D3DHookMain);
-			NyaHooks::D3DResetHook::aFunctions.push_back(OnD3DReset);
 			NyaHooks::SimServiceHook::Init();
 			NyaHooks::SimServiceHook::aFunctions.push_back(MainLoop);
 			NyaHooks::LateInitHook::Init();
 			NyaHooks::LateInitHook::aFunctions.push_back([]() {
+				NyaHooks::PlaceD3DHooks();
+				NyaHooks::D3DEndSceneHook::aPreFunctions.push_back(CollectPlayerPos);
+				NyaHooks::D3DEndSceneHook::aFunctions.push_back(D3DHookMain);
+				NyaHooks::D3DEndSceneHook::aFunctions.push_back(CheckPlayerPos);
+				NyaHooks::D3DResetHook::aFunctions.push_back(OnD3DReset);
+
 				*(float*)0x9DB360 = 1.0 / 120.0; // set sim framerate
 				*(float*)0x9EBB6C = 1.0 / 120.0; // set sim max framerate
 				*(void**)0xA9E764 = (void*)&VehicleConstructHooked;
-				if (GetModuleHandleA("NFSCLimitAdjuster.asi")) {
+				if (GetModuleHandleA("NFSCLimitAdjuster.asi") || std::filesystem::exists("NFSCLimitAdjuster.ini")) {
 					MessageBoxA(nullptr, "Incompatible mod detected! Please remove NFSCLimitAdjuster.asi from your game before using this mod.", "nya?!~", MB_ICONERROR);
 					exit(0);
 				}
