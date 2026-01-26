@@ -336,7 +336,7 @@ const char* GetCountdownNISHooked(GRaceParameters* a1) {
 void ApplyCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651A80, &IntroNISHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651860, &GetNISHooked);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F0B0, &GetCountdownNISHooked);
+	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F0B0, &GetCountdownNISHooked);
 	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x650E3D, 0x650FDC); // disable NIS_Play
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E0C0, &GetIsDDayRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E180, &GetIsTutorialRaceHooked);
