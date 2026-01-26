@@ -290,7 +290,7 @@ const char* GetLocalizedStringHooked(uint32_t key) {
 		}
 		auto total = CalculateTotalTimes();
 		if (total > 0) {
-			str += std::format("\nCompletion Time: {}", GetTimeFromMilliseconds(total));
+			str += std::format("\n\nCompletion Time: {}", GetTimeFromMilliseconds(total));
 			str.pop_back();
 		}
 		return str.c_str();

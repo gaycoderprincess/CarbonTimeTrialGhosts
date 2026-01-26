@@ -276,6 +276,99 @@ bool __thiscall GetRacerNameHooked(DALRacer* pThis, char* out, int outLen, int r
 	return true;
 }
 
+// drift scores are so fucked up i have no idea how any of this works
+/*int GetPlayerDriftScore(int id) {
+	if (id == 0) return DALRacer::GetDriftScoreReport(nullptr, 0)->totalPoints;
+
+	int opponentId = id-1;
+	if (OpponentGhosts.size() <= opponentId) return 0;
+
+	auto& opponent = OpponentGhosts[opponentId];
+	auto tick = opponent.GetCurrentTick();
+	if (tick >= opponent.aTicks.size()) return opponent.nFinishPoints;
+	return opponent.aTicks[tick].v4.driftPoints;
+}
+
+int GetPlayerDriftPosition(int id) {
+	std::vector<int> players;
+	int numRacers = 1 + OpponentGhosts.size();
+	for (int i = 0; i < numRacers; i++) {
+		players.push_back(i);
+	}
+	std::sort(players.begin(), players.end(), [](const int a, const int b) { return GetPlayerDriftScore(a) > GetPlayerDriftScore(b); });
+
+	for (auto& player : players) {
+		if (player == id) return (&player - &players[0]) + 1;
+	}
+	return 1;
+}
+
+int GetPlayerByDriftPosition(int id) {
+	std::vector<int> players;
+	int numRacers = 1 + OpponentGhosts.size();
+	for (int i = 0; i < numRacers; i++) {
+		players.push_back(i);
+	}
+	std::sort(players.begin(), players.end(), [](const int a, const int b) { return GetPlayerDriftScore(a) > GetPlayerDriftScore(b); });
+	return players[id-1];
+}
+
+DriftScoreReport* __thiscall GetDriftScoreHooked(DALRacer* pThis, int racerId) {
+	// 0 and 1 return the player always
+	// 2 onwards returns player at ranking
+
+	if (racerId < 2) {
+		return DALRacer::GetDriftScoreReport(pThis, racerId);
+	}
+
+	static DriftScoreReport tmp;
+
+	auto localPlayer = DALRacer::GetDriftScoreReport(pThis, 0);
+	auto report = DALRacer::GetDriftScoreReport(pThis, racerId);
+	if (!report) report = &tmp;
+	auto ply = GetPlayerByDriftPosition(racerId-1);
+	if (ply != 0 && report != localPlayer) {
+		report->totalPoints = GetPlayerDriftScore(ply);
+	}
+	return report;
+}
+
+bool __thiscall GetRacerPositionHooked(DALRacer* pThis, int* out, int racerId) {
+	auto raceType = GRaceParameters::GetRaceType(GRaceStatus::fObj->mRaceParms);
+	if (raceType != GRace::kRaceType_DriftRace && raceType != GRace::kRaceType_CanyonDrift) {
+		return DALRacer::GetRacerPosition(pThis, out, racerId);
+	}
+
+	if (racerId < 2) {
+		*out = GetPlayerDriftPosition(0);
+		return true;
+	}
+	return racerId-1;
+}
+
+bool __thiscall GetRacerNameHooked(DALRacer* pThis, char* out, int outLen, int racerId) {
+	auto raceType = GRaceParameters::GetRaceType(GRaceStatus::fObj->mRaceParms);
+	if (raceType != GRace::kRaceType_DriftRace && raceType != GRace::kRaceType_CanyonDrift) {
+		return DALRacer::GetName(pThis, out, outLen, racerId);
+	}
+
+	if (racerId < 2) {
+		return DALRacer::GetName(pThis, out, outLen, racerId);
+	}
+
+	auto ply = GetPlayerByDriftPosition(racerId-1);
+	if (ply == 0) {
+		strcpy_s(out, outLen, GRaceStatus::fObj->mRacerInfo[0].mName);
+		return true;
+	}
+	else {
+		auto opponentId = ply-1;
+		if (OpponentGhosts.size() <= opponentId) return false;
+		strcpy_s(out, outLen, OpponentGhosts[opponentId].sPlayerName.c_str());
+		return true;
+	}
+}*/
+
 int __thiscall GetRaceTypeForMusicHooked(GRaceParameters* pThis) {
 	return GRace::kRaceType_Tollbooth;
 }
@@ -343,6 +436,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch(0xA611EC, 0); // canyon -> sprint
 			NyaHookLib::Patch(0xA611BC, 0); // checkpoint -> sprint
 			NyaHookLib::Patch(0xA611FC, 1); // pursuit knockout -> circuit
+			NyaHookLib::Patch<uint8_t>(0x655960, 0xC3); // remove speedtraps
 
 			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
 
