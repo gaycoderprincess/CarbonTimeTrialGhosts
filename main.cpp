@@ -447,6 +447,9 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch<uint16_t>(0x63F65E, 0x9090); // don't spawn boss characters
 			NyaHookLib::Patch<uint16_t>(0x63F66C, 0x9090); // don't spawn boss characters
 
+			static int tmpWorldDetail = 0;
+			NyaHookLib::Patch(0x711121, &tmpWorldDetail); // remove props regardless of world lod
+
 			ApplyCarRenderHooks();
 
 			ChloeMenuLib::RegisterMenu("Time Trial Ghosts", &DebugMenu);
