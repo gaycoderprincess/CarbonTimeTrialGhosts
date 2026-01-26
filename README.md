@@ -4,7 +4,7 @@ Experiment for Need for Speed: Carbon that replaces Quick Race opponents with Tr
 
 ## Installation
 
-- Make sure you have v1.3 of the game, as this is the only version this plugin is compatible with. (exe size of 7217152 bytes)
+- Make sure you have v1.4 of the game, as this is the only version this plugin is compatible with. (exe size of 7217152 bytes)
 - Plop the files of your chosen variant into your game folder. (Practice for competing against yourself in quick races, ChallengeSeries for the time trial challenges)
 - Start the game and launch any race, you will now have a PB ghost to race against instead of AI opponents.
 - Enjoy, nya~ :3
