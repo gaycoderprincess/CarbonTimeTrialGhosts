@@ -258,6 +258,7 @@ std::string FormatScore(int a1) {
 	return std::format("{},{:03}", v4, a1 % 1000);
 }
 
+std::filesystem::path gDLLPath;
 wchar_t gDLLDir[MAX_PATH];
 class DLLDirSetter {
 public:
