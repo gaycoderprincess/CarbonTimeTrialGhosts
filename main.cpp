@@ -70,28 +70,7 @@ void MainLoop() {
 
 void RenderLoop() {
 	VerifyTimers();
-
-	if (TheGameFlowManager.CurrentGameFlowState != GAMEFLOW_STATE_RACING) return;
-	if (IsInLoadingScreen()) return;
-
-	DisplayLeaderboard();
-
-	if (!ShouldGhostRun()) return;
-
-	if (bViewReplayMode) {
-		auto ghost = GetViewReplayGhost();
-
-		auto tick = ghost->GetCurrentTick();
-		if (ghost->aTicks.size() > tick) {
-			DisplayInputs(&ghost->aTicks[tick].v1.inputs);
-		}
-	}
-	else if (bShowInputsWhileDriving) {
-		auto inputs = GetPlayerControls(GetLocalPlayerVehicle());
-		DisplayInputs(&inputs);
-	}
-
-	DisplayPlayerNames();
+	TimeTrialRenderLoop();
 }
 
 auto Game_NotifyRaceFinished = (void(*)(ISimable*))0x660D20;
