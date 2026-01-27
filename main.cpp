@@ -478,6 +478,8 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			static int tmpWorldDetail = 0;
 			NyaHookLib::Patch(0x711121, &tmpWorldDetail); // remove props regardless of world lod
 
+			NyaHookLib::Patch<uint8_t>(0x6BE6D4, 1); // make drift scoring consistently higher regardless of controller type
+
 			ApplyCarRenderHooks();
 
 			ChloeMenuLib::RegisterMenu("Time Trial Ghosts", &DebugMenu);
