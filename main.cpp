@@ -18,6 +18,7 @@ bool bChallengeSeriesMode = false;
 #include "hooks/carrender.h"
 
 #ifdef TIMETRIALS_CHALLENGESERIES
+#include "../MostWantedTimeTrialGhosts/challengeseries.h"
 #include "hooks/customevents.h"
 
 void SetChallengeSeriesMode(bool on) {
