@@ -400,21 +400,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 				NyaHooks::D3DEndSceneHook::aFunctions.push_back(CheckPlayerPos);
 				NyaHooks::D3DResetHook::aFunctions.push_back(OnD3DReset);
 
-				// exopts - reenable barriers
-				NyaHookLib::WriteString(0x9D85C4, "BARRIER_SPLINE_4501");
-				NyaHookLib::WriteString(0x9D85D8, "BARRIER_SPLINE_4500");
-				NyaHookLib::WriteString(0x9D85EC, "BARRIER_SPLINE_4091");
-				NyaHookLib::WriteString(0x9D8600, "BARRIER_SPLINE_4090");
-				NyaHookLib::WriteString(0x9D8614, "BARRIER_SPLINE_306");
-				NyaHookLib::WriteString(0x9D8628, "BARRIER_SPLINE_305");
-				NyaHookLib::WriteString(0x9D8B30, "BARRIER_SPLINE_%d");
-
-				// exopts - drift stuff
-				NyaHookLib::Patch<uint8_t>(0x6BE947, 10);
-				NyaHookLib::Patch<uint8_t>(0x6AB943, 20);
-				NyaHookLib::Patch<uint8_t>(0x6AB945, 20);
-				Tweak_DriftRaceCollisionThreshold = 3.5;
-				AugmentedDriftWithEBrake = false;
+				ApplyVerificationPatches();
 
 				*(float*)0x9DB360 = 1.0 / 120.0; // set sim framerate
 				*(float*)0x9EBB6C = 1.0 / 120.0; // set sim max framerate
@@ -461,12 +447,6 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch<uint8_t>(0x655960, 0xC3); // remove speedtraps
 
 			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
-
-			// undo exopts gamespeed
-			static float f = 1.0;
-			NyaHookLib::Patch(0x7683BA, &f);
-			NyaHookLib::Patch(0x7683CB, &f);
-			NyaHookLib::Patch<uint16_t>(0x46CE42, 0x9090);
 
 			// increase max racers to 30
 			NyaHookLib::Patch<uint8_t>(0x668EC9, 0xEB);
