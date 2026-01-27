@@ -1,6 +1,6 @@
 # Carbon Time Trial Ghosts
 
-Experiment for Need for Speed: Carbon that replaces Quick Race opponents with TrackMania-like replays
+A mod for Need for Speed: Carbon that replaces Quick Race opponents with TrackMania-like replays
 
 ## Installation
 
