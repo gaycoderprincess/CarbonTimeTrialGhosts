@@ -16,8 +16,10 @@ struct tChallengeSeriesEvent {
 	std::string sCarPreset;
 	int nLapCountOverride = 0;
 
-	std::string sGhostCarName;
 	int nNumGhosts = 0;
+	tReplayGhost aTargetGhosts[NUM_DIFFICULTY] = {};
+
+	ChallengeSeriesEvent(const char* eventName, const char* carPreset, int lapCount = 0) : sEventName(eventName), sCarPreset(carPreset), nLapCountOverride(lapCount) {}
 
 	GRaceParameters* GetRace() const {
 		return GRaceDatabase::GetRaceFromHash(GRaceDatabase::mObj, Attrib::StringHash32(sEventName.c_str()));
@@ -29,53 +31,54 @@ struct tChallengeSeriesEvent {
 	}
 
 	tReplayGhost GetPBGhost() {
-		if (sGhostCarName.empty()) sGhostCarName = GetCarNameForGhost(sCarPreset);
-
 		tReplayGhost temp;
 		LoadPB(&temp, sGhostCarName, sEventName, GetLapCount(), 0, nullptr);
 		return temp;
 	}
 
 	tReplayGhost GetTargetGhost() {
-		if (sGhostCarName.empty()) sGhostCarName = GetCarNameForGhost(sCarPreset);
+		if (aTargetGhosts[nDifficulty].nFinishTime != 0) return aTargetGhosts[nDifficulty];
 
 		tReplayGhost targetTime;
 		auto times = CollectReplayGhosts(sGhostCarName, sEventName, GetLapCount(), nullptr);
-		if (!times.empty()) targetTime = times[0];
+		if (!times.empty()) {
+			times[0].aTicks.clear(); // just in case
+			targetTime = aTargetGhosts[nDifficulty] = times[0];
+		}
 		nNumGhosts = times.size();
 		return targetTime;
 	}
 };
 
-std::vector<tChallengeSeriesEvent> aNewChallengeSeries = {
+std::vector<ChallengeSeriesEvent> aNewChallengeSeries = {
 	// custom events
-	{"tn.1.2", "IS300_2"},
-	{"ex.1.3", "EUROPA_2"},
-	{"sf.3.1", "MR2_2"},
+	ChallengeSeriesEvent("tn.1.2", "IS300_2"),
+	ChallengeSeriesEvent("ex.1.3", "EUROPA_2"),
+	ChallengeSeriesEvent("sf.3.1", "MR2_2"),
 
-	{"qr.4.2", "CROSS"},
-	{"mu.1.3", "CE_240SX"},
-	{"sf.2.1", "NIKKI"},
+	ChallengeSeriesEvent("qr.4.2", "CROSS"),
+	ChallengeSeriesEvent("mu.1.3", "CE_240SX"),
+	ChallengeSeriesEvent("sf.2.1", "NIKKI"),
 
-	{"tn.99.99", "CS_RX8"},
-	{"tn.1.1", "KENJI"},
-	{"ct.2.2", "CE_IMPREZA"},
+	ChallengeSeriesEvent("tn.99.99", "CS_RX8"),
+	ChallengeSeriesEvent("tn.1.1", "KENJI"),
+	ChallengeSeriesEvent("ct.2.2", "CE_IMPREZA"),
 
-	{"ce.1.1", "ANGIE_CASINO"},
-	{"mu.3.3", "CS_SKYLINE"},
-	{"4.war", "CS_350Z"},
+	ChallengeSeriesEvent("ce.1.1", "ANGIE_CASINO"),
+	ChallengeSeriesEvent("mu.3.3", "CS_SKYLINE"),
+	ChallengeSeriesEvent("4.war", "CS_350Z"),
 
-	{"ex.2.1", "WOLF"},
-	{"mu.5.3", "CS_SUPRA"},
-	{"mu.3.1", "ANGIE"},
+	ChallengeSeriesEvent("ex.2.1", "WOLF"),
+	ChallengeSeriesEvent("mu.5.3", "CS_SUPRA"),
+	ChallengeSeriesEvent("mu.3.1", "ANGIE"),
 
-	{"ex.3.1", "CE_MURCIELAGO"},
-	{"5.boss", "KENJI_CASINO"},
-	{"ps2.rx7", "CS_RX7"},
+	ChallengeSeriesEvent("ex.3.1", "CE_MURCIELAGO"),
+	ChallengeSeriesEvent("5.boss", "KENJI_CASINO"),
+	ChallengeSeriesEvent("ps2.rx7", "CS_RX7"),
 
-	{"ct.3.1", "DARIUS"},
-	{"cs.10.1", "CS_CORVETTEZ06"},
-	{"qr.4.6", "M3GTRCAREERSTART"},
+	ChallengeSeriesEvent("ct.3.1", "DARIUS"),
+	ChallengeSeriesEvent("cs.10.1", "CS_CORVETTEZ06"),
+	ChallengeSeriesEvent("qr.4.6", "M3GTRCAREERSTART"),
 
 	// challenge series
 	// canyon
