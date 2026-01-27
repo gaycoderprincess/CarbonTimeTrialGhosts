@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <format>
 #include <fstream>
+#include <thread>
 
 #include "nya_dx9_hookbase.h"
 #include "nya_commonhooklib.h"

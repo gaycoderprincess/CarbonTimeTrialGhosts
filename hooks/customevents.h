@@ -11,12 +11,15 @@ std::string GetCarNameForGhost(const std::string& carPreset) {
 	return carName;
 }
 
-struct tChallengeSeriesEvent {
+class ChallengeSeriesEvent {
+public:
 	std::string sEventName;
 	std::string sCarPreset;
 	int nLapCountOverride = 0;
 
 	int nNumGhosts = 0;
+	std::string sCarNameForGhost;
+	tReplayGhost PBGhost = {};
 	tReplayGhost aTargetGhosts[NUM_DIFFICULTY] = {};
 
 	ChallengeSeriesEvent(const char* eventName, const char* carPreset, int lapCount = 0) : sEventName(eventName), sCarPreset(carPreset), nLapCountOverride(lapCount) {}
@@ -30,9 +33,21 @@ struct tChallengeSeriesEvent {
 		return GRaceParameters::GetNumLaps(GetRace());
 	}
 
+	void ClearPBGhost() {
+		PBGhost = {};
+	}
+
+	std::string GetCarModelName() {
+		if (!sCarNameForGhost.empty()) return sCarNameForGhost;
+		return GetCarNameForGhost(sCarPreset);
+	}
+
 	tReplayGhost GetPBGhost() {
+		if (PBGhost.nFinishTime != 0) return PBGhost;
+
 		tReplayGhost temp;
-		LoadPB(&temp, sGhostCarName, sEventName, GetLapCount(), 0, nullptr);
+		LoadPB(&temp, GetCarModelName(), sEventName, GetLapCount(), 0, nullptr);
+		PBGhost = temp;
 		return temp;
 	}
 
@@ -40,7 +55,7 @@ struct tChallengeSeriesEvent {
 		if (aTargetGhosts[nDifficulty].nFinishTime != 0) return aTargetGhosts[nDifficulty];
 
 		tReplayGhost targetTime;
-		auto times = CollectReplayGhosts(sGhostCarName, sEventName, GetLapCount(), nullptr);
+		auto times = CollectReplayGhosts(GetCarModelName(), sEventName, GetLapCount(), nullptr);
 		if (!times.empty()) {
 			times[0].aTicks.clear(); // just in case
 			targetTime = aTargetGhosts[nDifficulty] = times[0];
@@ -131,7 +146,7 @@ std::vector<ChallengeSeriesEvent> aNewChallengeSeries = {
 	////{"ce.15.3", "ccx"},
 };
 
-tChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {
+ChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {
 	for (auto& event : aNewChallengeSeries) {
 		if (!GRaceDatabase::GetRaceFromHash(GRaceDatabase::mObj, Attrib::StringHash32(event.sEventName.c_str()))) {
 			MessageBoxA(0, std::format("Failed to find event {}", event.sEventName).c_str(), "nya?!~", MB_ICONERROR);
@@ -144,7 +159,7 @@ tChallengeSeriesEvent* GetChallengeEvent(uint32_t hash) {
 	return nullptr;
 }
 
-tChallengeSeriesEvent* GetChallengeEvent(const std::string& str) {
+ChallengeSeriesEvent* GetChallengeEvent(const std::string& str) {
 	for (auto& event : aNewChallengeSeries) {
 		if (event.sEventName == str) return &event;
 	}
@@ -313,10 +328,6 @@ bool __thiscall GetIsBossRaceHooked(GRaceParameters* pThis) {
 	return false;
 }
 
-bool __thiscall GetIsRollingStartHooked(GRaceParameters* pThis) {
-	return false;
-}
-
 int __thiscall GetNumLapsHooked(GRaceParameters* pThis) {
 	if (!GRaceParameters::GetIsLoopingRace(pThis)) return 1;
 	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
@@ -332,19 +343,40 @@ const char* GetNISHooked(GRaceParameters* a1) {
 	return nullptr;
 }
 
-const char* GetCountdownNISHooked(GRaceParameters* a1) {
-	return "";
+void OnChallengeSeriesEventPB() {
+	auto event = GetChallengeEvent(GRaceParameters::GetEventID(GRaceStatus::fObj->mRaceParms));
+	if (!event) return;
+	event->ClearPBGhost();
+}
+
+void PrecacheAllChallengeGhosts() {
+	// all pbs first, all targets after
+	for (auto& event : aNewChallengeSeries) {
+		event.GetPBGhost();
+	}
+	for (auto& event : aNewChallengeSeries) {
+		event.GetTargetGhost();
+	}
+}
+
+void OnChallengeSeriesLoaded() {
+	// precache model names so the thread doesn't have to check attrib
+	for (auto& event : aNewChallengeSeries) {
+		event.GetCarModelName();
+	}
+
+	std::thread(PrecacheAllChallengeGhosts).detach();
 }
 
 void ApplyCustomEventsHooks() {
+	NyaHooks::LateInitHook::aFunctions.push_back(OnChallengeSeriesLoaded);
+
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651A80, &IntroNISHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651860, &GetNISHooked);
-	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F0B0, &GetCountdownNISHooked);
 	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x650E3D, 0x650FDC); // disable NIS_Play
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E0C0, &GetIsDDayRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E180, &GetIsTutorialRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E120, &GetIsBossRaceHooked);
-	//NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E8F0, &GetIsRollingStartHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F450, &GetNumLapsHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63C660, &GetNumOpponentsHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E540, &GetIsChallengeSeriesEvent);
