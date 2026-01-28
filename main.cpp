@@ -356,6 +356,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 #ifdef TIMETRIALS_CHALLENGESERIES
 			SetChallengeSeriesMode(true);
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C4D4, 0x5B2373); // remove my cars
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C570, 0x5B2373); // remove quick race
 #else
 			UnlockAllThings = true;
