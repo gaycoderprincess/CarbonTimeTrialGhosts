@@ -9,6 +9,7 @@
 #include "nfsc.h"
 #include "chloemenulib.h"
 
+bool bCareerMode = false;
 bool bChallengeSeriesMode = false;
 
 #include "util.h"
@@ -24,14 +25,7 @@ bool bChallengeSeriesMode = false;
 void SetChallengeSeriesMode(bool on) {
 	bChallengeSeriesMode = on;
 	if (on) {
-		bViewReplayMode = false;
-		bOpponentsOnly = true;
-		nNitroType = NITRO_ON;
-		nSpeedbreakerType = NITRO_ON;
 		ApplyCustomEventsHooks();
-	}
-	else {
-		bOpponentsOnly = false;
 	}
 }
 #endif
@@ -136,7 +130,7 @@ DriftScoreReport* __thiscall GetDriftScoreHooked(DALRacer* pThis, int racerId) {
 		tmp.totalPoints = opponent.nFinishPoints;
 	}
 	else {
-		tmp.totalPoints = opponent.aTicks[tick].v4.driftPoints;
+		tmp.totalPoints = opponent.aTicks[tick].v4.points;
 	}
 	return &tmp;
 }
@@ -293,6 +287,10 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 				*(void**)0xA9E764 = (void*)&VehicleConstructHooked;
 				if (GetModuleHandleA("NFSCLimitAdjuster.asi") || std::filesystem::exists("NFSCLimitAdjuster.ini")) {
 					MessageBoxA(nullptr, "Incompatible mod detected! Please remove NFSCLimitAdjuster.asi from your game before using this mod.", "nya?!~", MB_ICONERROR);
+					exit(0);
+				}
+				if (GetModuleHandleA("NFSCExtraOptions.asi") || std::filesystem::exists("NFSCExtraOptionsSettings.ini") || std::filesystem::exists("scripts/NFSCExtraOptionsSettings.ini")) {
+					MessageBoxA(nullptr, "Potential unfair advantage detected! Please remove NFSCExtraOptions from your game before using this mod.", "nya?!~", MB_ICONERROR);
 					exit(0);
 				}
 			});
