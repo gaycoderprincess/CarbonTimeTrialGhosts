@@ -18,17 +18,8 @@ bool bChallengeSeriesMode = false;
 #include "../MostWantedTimeTrialGhosts/verification.h"
 #include "hooks/carrender.h"
 
-#ifdef TIMETRIALS_CHALLENGESERIES
 #include "../MostWantedTimeTrialGhosts/challengeseries.h"
 #include "hooks/customevents.h"
-
-void SetChallengeSeriesMode(bool on) {
-	bChallengeSeriesMode = on;
-	if (on) {
-		ApplyCustomEventsHooks();
-	}
-}
-#endif
 
 ISimable* VehicleConstructHooked(Sim::Param params) {
 	DLLDirSetter _setdir;
@@ -65,6 +56,12 @@ void MainLoop() {
 void RenderLoop() {
 	VerifyTimers();
 	TimeTrialRenderLoop();
+
+	if (TheGameFlowManager.CurrentGameFlowState == GAMEFLOW_STATE_IN_FRONTEND) {
+		if (FeQuickRaceOptions::sInstance != nullptr && bChallengeSeriesMode) {
+			UndoCustomEventsHooks();
+		}
+	}
 }
 
 auto Game_NotifyRaceFinished = (void(*)(ISimable*))0x660D20;
@@ -352,14 +349,9 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 			NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x61BA70, &GetIsCrewRaceHooked); // remove wingmen
 
-#ifdef TIMETRIALS_CHALLENGESERIES
-			SetChallengeSeriesMode(true);
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C4D4, 0x5B2373); // remove my cars
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C570, 0x5B2373); // remove quick race
-#else
+			SetupCustomEventsHooks();
+
 			UnlockAllThings = true;
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
-#endif
 
 			WriteLog("Mod initialized");
 		} break;

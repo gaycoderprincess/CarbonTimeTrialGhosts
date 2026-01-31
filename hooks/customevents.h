@@ -246,7 +246,30 @@ const char* GetNISHooked(GRaceParameters* a1) {
 	return nullptr;
 }
 
+std::vector<NyaHookLib::PatchWithUndo*> aChallengeSeriesHooks;
 void ApplyCustomEventsHooks() {
+	bChallengeSeriesMode = true;
+	for (auto& patch : aChallengeSeriesHooks) {
+		patch->ApplyPatch();
+	}
+}
+
+void UndoCustomEventsHooks() {
+	bChallengeSeriesMode = false;
+	for (auto& patch : aChallengeSeriesHooks) {
+		patch->UndoPatch();
+	}
+}
+
+auto FeChallengeSeriesSetup_orig = (void(__thiscall*)(FeChallengeSeries*))nullptr;
+void __thiscall FeChallengeSeriesSetupHooked(FeChallengeSeries* pThis) {
+	ApplyCustomEventsHooks();
+	FeChallengeSeriesSetup_orig(pThis);
+}
+
+void SetupCustomEventsHooks() {
+	FeChallengeSeriesSetup_orig = (void(__thiscall*)(FeChallengeSeries*))NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x864746, &FeChallengeSeriesSetupHooked);
+
 	NyaHooks::LateInitHook::aFunctions.push_back(OnChallengeSeriesLoaded);
 
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x651A80, &IntroNISHooked);
@@ -255,9 +278,9 @@ void ApplyCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E0C0, &GetIsDDayRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E180, &GetIsTutorialRaceHooked);
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E120, &GetIsBossRaceHooked);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F450, &GetNumLapsHooked);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63C660, &GetNumOpponentsHooked);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E540, &GetIsChallengeSeriesEvent);
+	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63F450, &GetNumLapsHooked);
+	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63C660, &GetNumOpponentsHooked);
+	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63E540, &GetIsChallengeSeriesEvent);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3739, &GetChallengeSeriesEventCount);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C374F, &GetChallengeSeriesEventHash);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C377B, &GetChallengeSeriesEventMedalLevel);
@@ -268,9 +291,9 @@ void ApplyCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C37FF, &GetChallengeSeriesEventSolo);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4B71F7, &GetChallengeSeriesEventTime);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3841, &GetChallengeSeriesEventPoints);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E990, &GetChallengeSeriesEventPlayerCar);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCarHash);
-	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E660, &GetChallengeSeriesEventUsePresetRide);
+	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63E990, &GetChallengeSeriesEventPlayerCar);
+	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCarHash);
+	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63E660, &GetChallengeSeriesEventUsePresetRide);
 
 	// use default fallback icons
 	NyaHookLib::Fill(0x4AA2B2, 0x90, 6);
