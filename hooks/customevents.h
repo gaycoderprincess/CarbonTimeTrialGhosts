@@ -185,7 +185,11 @@ int __thiscall GetNumOpponentsHooked(GRaceParameters* pThis) {
 
 	if (bViewReplayMode) return 0;
 	if (bChallengesOneGhostOnly) return 1;
-	return nDifficulty != DIFFICULTY_EASY ? std::min(event->nNumGhosts[nDifficulty], 29) : 1; // only spawn one ghost for easy difficulty
+
+	auto count = nDifficulty != DIFFICULTY_EASY ? event->nNumGhosts[nDifficulty] : 1; // only spawn one ghost for easy difficulty
+	if (bChallengesPBGhost && event->GetPBGhost().nFinishTime != 0) count++;
+	if (count > 29) count = 29;
+	return count;
 }
 
 const char* GetLocalizedStringHooked(uint32_t key) {
