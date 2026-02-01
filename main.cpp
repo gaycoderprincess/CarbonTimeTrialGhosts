@@ -354,6 +354,11 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch(0xA611A4, 0); // tollbooth -> sprint
 			NyaHookLib::Patch(0xA611BC, 0); // checkpoint -> sprint
 
+			NyaHookLib::Patch(0x83C4B4 + 1, 0x377BC69A); // my cars -> challenge series
+			NyaHookLib::Patch<uint8_t>(0x83C4B2 + 1, 2); // my cars -> challenge series
+			NyaHookLib::Patch(0x83C502 + 1, 0x4CF66E85); // challenge series -> my cars
+			NyaHookLib::Patch<uint8_t>(0x83C500 + 1, 1); // challenge series -> my cars
+
 #ifdef TIMETRIALS_CAREER
 			bCareerMode = true;
 
