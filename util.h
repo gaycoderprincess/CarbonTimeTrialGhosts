@@ -193,13 +193,8 @@ NyaMat4x4 PrepareCameraMatrix(Camera* pCamera) {
 	return pCamera->CurrentKey.Matrix.Invert();
 }
 
-// todo this is probably bad
-GRacerInfo* GetRacerInfoFromHandle(HSIMABLE handle) {
-	auto race = GRaceStatus::fObj;
-	for (int i = 0; i < race->mRacerCount; i++) {
-		if (race->mRacerInfo[i].mhSimable == handle) return &race->mRacerInfo[i];
-	}
-	return nullptr;
+GRacerInfo* GetRacerInfoFromHandle(ISimable* handle) {
+	return GRaceStatus::GetRacerInfo(GRaceStatus::fObj, handle);
 }
 
 /*FECustomizationRecord CreateStockCustomizations(uint32_t carModel) {
