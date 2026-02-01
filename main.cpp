@@ -25,7 +25,16 @@ ISimable* VehicleConstructHooked(Sim::Param params) {
 	DLLDirSetter _setdir;
 
 	auto vehicle = (VehicleParams*)params.mSource;
-	if (vehicle->carClass == DRIVER_RACER) {
+
+	bool replaceRacers = true;
+	if (bCareerMode) {
+		auto race = GetCurrentRace();
+		if (race && (GRaceParameters::GetIsBossRace(race) || GRaceParameters::GetIsDDayRace(race))) {
+			replaceRacers = false;
+		}
+	}
+
+	if (replaceRacers && vehicle->carClass == DRIVER_RACER) {
 		// copy player car for all opponents
 		auto player = GetLocalPlayerVehicle();
 		vehicle->matched = nullptr;
@@ -81,6 +90,7 @@ void OnEventFinished(ISimable* a1) {
 }
 
 float TrafficDensityHooked() {
+	if (!GRaceStatus::fObj || !GRaceStatus::fObj->mRaceParms) return 1.0;
 	return 0.0;
 }
 
@@ -101,7 +111,13 @@ bool __thiscall FinishTimeHooked(DALRacer* pThis, float* out, GRacerInfo* racer)
 }
 
 bool __stdcall RaceTimeHooked(float* out, GRacerInfo* racer) {
-	*out = (nGlobalReplayTimerNoCountdown / 120.0);
+	auto type = GRaceParameters::GetRaceType(GetCurrentRace());
+	if (type == GRace::kRaceType_Checkpoint || type == GRace::kRaceType_Tollbooth || type == GRace::kRaceType_Canyon) {
+		*out = 120.0;
+	}
+	else {
+		*out = (nGlobalReplayTimerNoCountdown / 120.0);
+	}
 	return true;
 }
 
@@ -309,32 +325,18 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			NyaHookLib::Patch<uint8_t>(0x492F51, 0xEB); // disable CameraMover::MinGapCars
 
 			// remove career mode and multiplayer
-			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C486, 0x5B2373); // career
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C5BE, 0x5B2373); // custom match
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C60C, 0x5B2373); // quick match
 			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C65A, 0x5B2373); // reward cards
 
 			RaceCountdownHooked_orig = (void(__thiscall*)(void*))NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x6863E3, &RaceCountdownHooked);
 
-			NyaHookLib::Patch(0x9C4F80, 0x43EE30); // replace AIVehicleRacecar update with AIVehicleEmpty update
+			SetRacerAIEnabled(false);
 			//NyaHookLib::Fill(0x6DA51B, 0x90, 5); // don't run PVehicle::UpdateListing when changing driver class
-
-			NyaHookLib::Patch(0xA611A4, 0); // tollbooth -> sprint
-			NyaHookLib::Patch(0xA6119C, 1); // lap knockout -> circuit
-			NyaHookLib::Patch(0xA611AC, 0); // speedtrap -> sprint
-			NyaHookLib::Patch(0xA611EC, 0); // canyon -> sprint
-			NyaHookLib::Patch(0xA611BC, 0); // checkpoint -> sprint
-			NyaHookLib::Patch(0xA611FC, 1); // pursuit knockout -> circuit
-			NyaHookLib::Patch<uint8_t>(0x655960, 0xC3); // remove speedtraps
-
-			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
 
 			// increase max racers to 30
 			NyaHookLib::Patch<uint8_t>(0x668EC9, 0xEB);
 			NyaHookLib::Patch<uint8_t>(0x668EEC, 0xEB);
-
-			NyaHookLib::Patch<uint16_t>(0x63F65E, 0x9090); // don't spawn boss characters
-			NyaHookLib::Patch<uint16_t>(0x63F66C, 0x9090); // don't spawn boss characters
 
 			static int tmpWorldDetail = 0;
 			NyaHookLib::Patch(0x711121, &tmpWorldDetail); // remove props regardless of world lod
@@ -349,9 +351,36 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 
 			NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x61BA70, &GetIsCrewRaceHooked); // remove wingmen
 
-			SetupCustomEventsHooks();
+			NyaHookLib::Patch(0xA611A4, 0); // tollbooth -> sprint
+			NyaHookLib::Patch(0xA611BC, 0); // checkpoint -> sprint
 
+#ifdef TIMETRIALS_CAREER
+			bCareerMode = true;
+
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C4D4, 0x5B2373); // remove my cars
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C570, 0x5B2373); // remove quick race
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C522, 0x5B2373); // remove challenge series
+
+			// skip wingman tutorial
+			NyaHookLib::Patch(0x5A5B98, 0x5A5B51);
+			NyaHookLib::Patch(0x8692D4 + 1, "1.escape");
+#else
+			NyaHookLib::Patch(0xA6119C, 1); // lap knockout -> circuit
+			NyaHookLib::Patch(0xA611AC, 0); // speedtrap -> sprint
+			NyaHookLib::Patch(0xA611EC, 0); // canyon -> sprint
+			NyaHookLib::Patch(0xA611FC, 1); // pursuit knockout -> circuit
+			NyaHookLib::Patch<uint8_t>(0x655960, 0xC3); // remove speedtraps
+
+			NyaHookLib::Patch<uint8_t>(0x65118A, 0xEB); // disable SpawnCop, fixes dday issues
+
+			NyaHookLib::Patch<uint16_t>(0x63F65E, 0x9090); // don't spawn boss characters
+			NyaHookLib::Patch<uint16_t>(0x63F66C, 0x9090); // don't spawn boss characters
+
+			NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x83C486, 0x5B2373); // career
+
+			SetupCustomEventsHooks();
 			UnlockAllThings = true;
+#endif
 
 			WriteLog("Mod initialized");
 		} break;

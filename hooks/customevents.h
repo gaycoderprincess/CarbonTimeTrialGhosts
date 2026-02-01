@@ -28,6 +28,9 @@ std::vector<ChallengeSeriesEvent> aNewChallengeSeries = {
 	ChallengeSeriesEvent("cs.10.1", "CS_CORVETTEZ06"),
 	ChallengeSeriesEvent("qr.4.6", "M3GTRCAREERSTART"),
 
+	// todo group of 3 events
+	//ChallengeSeriesEvent("tn.5.3", "CS_ECLIPSEGT"),
+
 	// challenge series
 	// canyon
 	//{"cs.1.1", "IS300_2"},
