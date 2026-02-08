@@ -73,7 +73,7 @@ void RenderLoop() {
 	}
 }
 
-auto Game_NotifyRaceFinished = (void(*)(ISimable*))0x660D20;
+auto Game_NotifyRaceFinished = (void(*)(ISimable*))nullptr;
 void OnEventFinished(ISimable* a1) {
 	bool isPlayer = (!a1 || a1 == GetLocalPlayerSimable()) && !GetLocalPlayerVehicle()->IsDestroyed();
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x660E0F, isPlayer ? 0x6BE1F0 : 0x6BE2CC); // don't call DriftScoring::Finalize from other racers finishing
