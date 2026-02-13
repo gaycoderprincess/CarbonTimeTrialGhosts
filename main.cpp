@@ -293,10 +293,11 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 				NyaHooks::D3DEndSceneHook::aFunctions.push_back(CheckPlayerPos);
 				NyaHooks::D3DResetHook::aFunctions.push_back(OnD3DReset);
 
+				NyaHookLib::Patch<float>(0x9DB360, 1.0 / 120.0); // set sim framerate
+				NyaHookLib::Patch<float>(0x9EBB6C, 1.0 / 120.0); // set sim max framerate
+
 				ApplyVerificationPatches();
 
-				*(float*)0x9DB360 = 1.0 / 120.0; // set sim framerate
-				*(float*)0x9EBB6C = 1.0 / 120.0; // set sim max framerate
 				*(void**)0xA9E764 = (void*)&VehicleConstructHooked;
 				if (GetModuleHandleA("NFSCLimitAdjuster.asi") || std::filesystem::exists("NFSCLimitAdjuster.ini")) {
 					MessageBoxA(nullptr, "Incompatible mod detected! Please remove NFSCLimitAdjuster.asi from your game before using this mod.", "nya?!~", MB_ICONERROR);
