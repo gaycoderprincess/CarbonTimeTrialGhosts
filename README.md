@@ -18,6 +18,7 @@ A mod for Need for Speed: Carbon that replaces Quick Race opponents with TrackMa
 - Ghosts include player inputs, and while they're not directly usable for playback (the game is not deterministic) it can still be used to verify legitimacy
 - The mod includes a basic anti-cheat, preventing common methods of cheating
 - The physics tickrate has been locked to 120, meaning Widescreen Fix no longer gives you an unfair advantage
+- The World Detail setting no longer influences prop spawns, keeping everyone on a level playing field with reduced props without the usual lowered texture quality
 
 ## Building
 
