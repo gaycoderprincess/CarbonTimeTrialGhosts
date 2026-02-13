@@ -136,18 +136,24 @@ bool __stdcall GetChallengeSeriesEventSolo(int* out, uint32_t hash) {
 }
 
 const char* __thiscall GetChallengeSeriesEventPlayerCar(GRaceParameters* pThis) {
+	if (!bChallengeSeriesMode) return nullptr;
+
 	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
-	if (!event) return "911turbo";
+	if (!event) return nullptr;
 	return event->sCarPreset.c_str();
 }
 
 uint32_t __thiscall GetChallengeSeriesEventPlayerCarHash(GRaceParameters* pThis) {
+	if (!bChallengeSeriesMode) return 0;
+
 	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
-	if (!event) return Attrib::StringHash32("911turbo");
+	if (!event) return 0;
 	return FEHashUpper(event->sCarPreset.c_str());
 }
 
 bool __thiscall GetChallengeSeriesEventUsePresetRide(GRaceParameters* pThis) {
+	if (!bChallengeSeriesMode) return false;
+
 	auto event = GetChallengeEvent(GRaceParameters::GetEventID(pThis));
 	if (!event) return false;
 	return FindFEPresetCar(FEHashUpper(event->sCarPreset.c_str())) != nullptr;
@@ -288,7 +294,7 @@ void SetupCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E120, &GetIsBossRaceHooked);
 	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63F450, &GetNumLapsHooked);
 	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63C660, &GetNumOpponentsHooked);
-	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63E540, &GetIsChallengeSeriesEvent);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E540, &GetIsChallengeSeriesEvent);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3739, &GetChallengeSeriesEventCount);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C374F, &GetChallengeSeriesEventHash);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C377B, &GetChallengeSeriesEventMedalLevel);
@@ -299,9 +305,9 @@ void SetupCustomEventsHooks() {
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C37FF, &GetChallengeSeriesEventSolo);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4B71F7, &GetChallengeSeriesEventTime);
 	NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x4C3841, &GetChallengeSeriesEventPoints);
-	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63E990, &GetChallengeSeriesEventPlayerCar);
-	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCarHash);
-	new NyaHookLib::PatchWithUndo(&aChallengeSeriesHooks, NyaHookLib::JMP, 0x63E660, &GetChallengeSeriesEventUsePresetRide);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E990, &GetChallengeSeriesEventPlayerCar);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63F4B0, &GetChallengeSeriesEventPlayerCarHash);
+	NyaHookLib::PatchRelative(NyaHookLib::JMP, 0x63E660, &GetChallengeSeriesEventUsePresetRide);
 
 	// use default fallback icons
 	NyaHookLib::Fill(0x4AA2B2, 0x90, 6);
