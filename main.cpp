@@ -309,6 +309,10 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 				}
 			});
 
+			// use SuspensionRacer instead of SuspensionSimple for racers - fixes popped tire behavior
+			NyaHookLib::Patch(0x683C3B + 1, "SuspensionRacer");
+			NyaHookLib::Patch(0x6D0EF7 + 1, "SuspensionRacer");
+
 			Game_NotifyRaceFinished = (void(*)(ISimable*))(*(uint32_t*)(0x669E49 + 1));
 			NyaHookLib::Patch(0x669E49 + 1, &OnEventFinished);
 
@@ -333,7 +337,6 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			RaceCountdownHooked_orig = (void(__thiscall*)(void*))NyaHookLib::PatchRelative(NyaHookLib::CALL, 0x6863E3, &RaceCountdownHooked);
 
 			SetRacerAIEnabled(false);
-			//NyaHookLib::Fill(0x6DA51B, 0x90, 5); // don't run PVehicle::UpdateListing when changing driver class
 
 			// increase max racers to 30
 			NyaHookLib::Patch<uint8_t>(0x668EC9, 0xEB);
