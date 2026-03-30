@@ -310,8 +310,9 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 			});
 
 			// use SuspensionRacer instead of SuspensionSimple for racers - fixes popped tire behavior
-			NyaHookLib::Patch(0x683C3B + 1, "SuspensionRacer");
-			NyaHookLib::Patch(0x6D0EF7 + 1, "SuspensionRacer");
+			// this breaks drift events with multiple opponents!!
+			//NyaHookLib::Patch(0x683C3B + 1, "SuspensionRacer");
+			//NyaHookLib::Patch(0x6D0EF7 + 1, "SuspensionRacer");
 
 			Game_NotifyRaceFinished = (void(*)(ISimable*))(*(uint32_t*)(0x669E49 + 1));
 			NyaHookLib::Patch(0x669E49 + 1, &OnEventFinished);
